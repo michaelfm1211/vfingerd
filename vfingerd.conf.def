@@ -1,0 +1,16 @@
+[root]
+use_passwd = true
+
+[info]
+name = Server Information
+plan = /etc/vfingerd_info
+
+[vfingerd]
+name = vfingerd
+plan = <<EOF
+VFINGERD			https://github.com/michaelfm1211/vfingerd
+vfingerd is an open source virtual finger server. vfingerd uses a config file
+instead of reading your /etc/passwd. vfingerd only shows your username, real
+name, and your plan.
+EOF
+
