@@ -2,11 +2,11 @@
 use_passwd = true
 
 [info]
-name = Server Information
-plan = /etc/vfingerd_info
+name = "Server Information"
+plan_file = "/etc/motd"
 
 [vfingerd]
-name = vfingerd
+name = "vfingerd"
 plan = <<EOF
 VFINGERD			https://github.com/michaelfm1211/vfingerd
 vfingerd is an open source virtual finger server. vfingerd uses a config file
