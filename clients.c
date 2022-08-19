@@ -37,7 +37,7 @@ static void read_query(struct ev_loop *loop, struct client *client) {
 		ptr = ptr->next;
 	}
 
-	if (client->query == NULL || client->query->nonexistant) {
+	if (client->query == NULL) {
 		client->error = UNKNOWN_USER;
 		client->state = WRITE_ERROR;
 	} else

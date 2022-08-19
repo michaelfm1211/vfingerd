@@ -45,8 +45,6 @@ static void list_add_node(struct config_ent **list, struct config_ent **tail) {
 // contents.
 static bool list_node_plan_file(struct config_ent *node, const char *path,
 		struct debug_info *debug) {
-	// if the file's contents are too big to store on the stack, its
-	// probably not practical to be sent as a plan either.
 	FILE *plan = fopen(path, "r");
 	if (plan == NULL) {
 		if (debug != NULL) {
