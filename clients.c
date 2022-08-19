@@ -14,7 +14,20 @@
 static void read_query(struct ev_loop *loop, struct client *client) {
 	char query[BUF_SIZ];
 	read(client->fd, query, BUF_SIZ-1);
-	*(strchr(query, '\n')) = '\0';
+
+	char *cr = strstr(query, "\r\n");
+	if (cr == NULL) {
+		client->error = BAD_QUERY;
+		client->state = WRITE_ERROR;
+		goto end;
+	}
+	*cr = '\0';
+
+	if (*query == '\0') {
+		client->state = WRITE_ALL;
+		goto end;
+	}
+
 	struct config_ent *ptr = client->server->config;
 	while (ptr != NULL) {
 		if (!strcmp(ptr->name, query)) {
@@ -28,11 +41,17 @@ static void read_query(struct ev_loop *loop, struct client *client) {
 		client->error = UNKNOWN_USER;
 		client->state = WRITE_ERROR;
 	} else
-		client->state = WRITE_RESP;
-
+		client->state = WRITE_PLAN;
+end:
 	ev_io_stop(loop, &client->io);
 	ev_io_init(&client->io, client_cb, client->fd, EV_WRITE);
 	ev_io_start(loop, &client->io);
+}
+
+// Write a list of all non-hidden users to the client
+static void write_all(struct client *client) {
+	// TODO: finish
+	client->state = DISCONNECT;
 }
 
 // Write the user's plan to the client
@@ -66,9 +85,11 @@ end:
 static void write_error(struct client *client) {
 	char *msg = NULL;
 	switch (client->error) {
+	case BAD_QUERY:
+		msg = "--- Bad Query. ---"SERVER_SIG"\r\n";
+		break;
 	case NONE:
 		msg = "--- An Unknown Error Occured. --- "SERVER_SIG"\r\n";
-		write(client->fd, msg, strlen(msg));
 		break;
 	case UNKNOWN_USER:
 		msg = "--- No Such User. --- "SERVER_SIG"\r\n";
@@ -93,7 +114,10 @@ void client_cb(struct ev_loop *loop, ev_io *watcher, int revents) {
 	case READ_QUERY:
 		read_query(loop, client);
 		break;
-	case WRITE_RESP:
+	case WRITE_ALL:
+		write_all(client);
+		break;
+	case WRITE_PLAN:
 		write_plan(client);
 		break;
 	case WRITE_ERROR:

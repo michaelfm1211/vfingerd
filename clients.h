@@ -9,12 +9,14 @@
 
 enum client_state {
 	READ_QUERY,
-	WRITE_RESP,
+	WRITE_ALL,
+	WRITE_PLAN,
 	WRITE_ERROR,
 	DISCONNECT
 };
 
 enum client_error {
+	BAD_QUERY,
 	NONE,
 	UNKNOWN_USER
 };
