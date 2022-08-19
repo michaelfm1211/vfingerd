@@ -75,7 +75,7 @@ static void write_plan(struct client *client) {
 				" %s\r\n", client->query->name, client->query->real_name,
 				client->query->plan, SERVER_SIG);
 	}
-	write(client->fd, buf, buf_len);
+	write(client->fd, buf, buf_len-1);
 end:
 	client->state = DISCONNECT;
 	free(buf);

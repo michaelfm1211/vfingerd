@@ -17,8 +17,19 @@ struct debug_info {
 // Strips all whitespace from a string
 static void strip_whitespace(char *str) {
     int x = 0;
+	char quoteChar = 0;
     for (int i = 0; str[i]; i++) {
-        if (!isspace(str[i]))
+		if (str[i] == '\'' || str[i] == '"') {
+			if (!quoteChar) {
+				quoteChar = str[i];
+				continue;
+			} else if (str[i] == quoteChar) {
+				quoteChar = 0;
+				continue;
+			}
+		}
+
+        if (quoteChar || !isspace(str[i]))
             str[x++] = str[i];
     }
     str[x] = '\0';
@@ -124,7 +135,10 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 	} else if (!strcmp(key, "name")) {
 		node->real_name = value;
 	} else if (!strcmp(key, "plan")) {
-		node->plan = value;
+		char *tmp = malloc(strlen(value) + 3);
+		sprintf(tmp, "%s\r\n", value);
+		node->plan = tmp;
+		free((void *)value);
 	} else if (!strcmp(key, "plan_file")) {
 		if (!list_node_plan_file(node, value, debug))
 			goto error;
