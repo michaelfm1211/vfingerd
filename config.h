@@ -8,6 +8,7 @@
 // Represents an entry in the configuration file. Additionally, each
 // configuration entry represents one vfingerd user.
 struct config_ent {
+	bool hidden;
 	const char *name;
 	const char *real_name;
 	const char *plan;

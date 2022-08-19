@@ -113,6 +113,14 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 					debug->path, key, debug->linenum);
 			goto error;
 		}
+	} else if (!strcmp(key, "hidden")) {
+		if (!strcmp(value, "true")) {
+			node->hidden = true;
+		} else if (strcmp(value, "false")) {
+			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
+					debug->path, key, debug->linenum);
+			goto error;
+		}
 	} else if (!strcmp(key, "name")) {
 		node->real_name = value;
 	} else if (!strcmp(key, "plan")) {
