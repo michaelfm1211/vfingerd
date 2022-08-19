@@ -1,8 +1,11 @@
 #include <ctype.h>
+#include <pwd.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "config.h"
 #include "util.h"
 
@@ -13,12 +16,12 @@ struct debug_info {
 
 // Strips all whitespace from a string
 static void strip_whitespace(char *str) {
-	int x = 0;
-	for (int i = 0; str[i]; i++) {
-		if (!isspace(str[i]))
-			str[x++] = str[i];
-	}
-	str[x] = '\0';
+    int x = 0;
+    for (int i = 0; str[i]; i++) {
+        if (!isspace(str[i]))
+            str[x++] = str[i];
+    }
+    str[x] = '\0';
 }
 
 // Rewrite all LF characters in a buffer to CRLFs.
@@ -38,13 +41,6 @@ static void list_add_node(struct config_ent **list, struct config_ent **tail) {
 	}
 }
 
-// Populate a configuration entry with information from /etc/passwd
-static void list_node_use_passwd(const char *name, struct config_ent *node) {
-	// TODO: finish
-	node->real_name = strdup("examply");
-	node->real_name = strdup(name);
-}
-
 // Read a plan file and populate a configuration entry's plan with its
 // contents.
 static bool list_node_plan_file(struct config_ent *node, const char *path,
@@ -53,9 +49,11 @@ static bool list_node_plan_file(struct config_ent *node, const char *path,
 	// probably not practical to be sent as a plan either.
 	FILE *plan = fopen(path, "r");
 	if (plan == NULL) {
-		fprintf(stderr, "%s: Error opening file on line %d\n", debug->path,
-				debug->linenum);
-		perror(path);
+		if (debug != NULL) {
+			fprintf(stderr, "%s: Error opening file on line %d\n", debug->path,
+					debug->linenum);
+			perror(path);
+		}
 		return false;
 	}
 	fseek(plan, 0, SEEK_END);
@@ -74,6 +72,24 @@ static bool list_node_plan_file(struct config_ent *node, const char *path,
 	return true;
 }
 
+// Populate a configuration entry with information from /etc/passwd
+static bool list_node_use_passwd(const char *name, struct config_ent *node) {
+	struct passwd *pw = getpwnam(name);
+	if (pw == NULL)
+		return false;
+	node->real_name = strdup(pw->pw_gecos);
+
+	if (pw->pw_dir != NULL) {
+		char plan_path[strlen(pw->pw_dir) + 7];
+		sprintf(plan_path, "%s/.plan", pw->pw_dir);
+		if (!list_node_plan_file(node, plan_path, NULL))
+			node->plan = NULL;
+	} else
+		node->plan = NULL;
+
+	return true;
+}
+
 // Set a key to a value on linked list a node, or return false if the key is
 // invalid or node is NULL. value should be allocated and not freed after
 // passed to this function.
@@ -87,7 +103,12 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 
 	if (!strcmp(key, "use_passwd")) {
 		if (!strcmp(value, "true")) {
-			list_node_use_passwd(value, node);
+			if (!list_node_use_passwd(node->name, node)) {
+				fprintf(stderr, "%s: Could not get information for user '%s'"
+						" on line %d\n", debug->path, node->name,
+						debug->linenum);
+				goto error;
+			}
 			free((void *)value);
 		} else if (strcmp(value, "false")) {
 			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
@@ -103,7 +124,7 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 			goto error;
 		free((void *)value);
 	} else {
-		fprintf(stderr, "%s, Unknown key '%s' on line %d\n", debug->path, key,
+		fprintf(stderr, "%s: Unknown key '%s' on line %d\n", debug->path, key,
 				debug->linenum);
 		goto error;
 	}
@@ -164,7 +185,7 @@ struct config_ent *config_parse(const char *path) {
 	ssize_t linelen;
 	while ((linelen = getline(&line, &linecap, config)) != -1) {
 		debug.linenum++;
-		if (linelen < 2)
+		if (linelen < 2 || line[0] == '#')
 			continue;
 		strip_whitespace(line);
 
