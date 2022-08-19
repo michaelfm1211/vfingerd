@@ -12,7 +12,7 @@
 struct debug_info {
 	const char *path;
 	int linenum;
-};
+} debug;
 
 // Strips all whitespace from a string
 static void strip_whitespace(char *str) {
@@ -55,12 +55,12 @@ static void list_add_node(struct config_ent **list, struct config_ent **tail) {
 // Read a plan file and populate a configuration entry's plan with its
 // contents.
 static bool list_node_plan_file(struct config_ent *node, const char *path,
-		struct debug_info *debug) {
+		bool suppress_errors) {
 	FILE *plan = fopen(path, "r");
 	if (plan == NULL) {
-		if (debug != NULL) {
-			fprintf(stderr, "%s: Error opening file on line %d\n", debug->path,
-					debug->linenum);
+		if (!suppress_errors) {
+			fprintf(stderr, "%s: Error opening file on line %d\n", debug.path,
+					debug.linenum);
 			perror(path);
 		}
 		return false;
@@ -91,7 +91,7 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 	if (pw->pw_dir != NULL) {
 		char plan_path[strlen(pw->pw_dir) + 7];
 		sprintf(plan_path, "%s/.plan", pw->pw_dir);
-		if (!list_node_plan_file(node, plan_path, NULL))
+		if (!list_node_plan_file(node, plan_path, true))
 			node->plan = NULL;
 	} else
 		node->plan = NULL;
@@ -103,10 +103,10 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 // invalid or node is NULL. value should be allocated and not freed after
 // passed to this function.
 static bool list_node_set(struct config_ent *node, const char *key, const char
-		*value, struct debug_info *debug) {
+		*value) {
 	if (node == NULL) {
 		fprintf(stderr, "%s: All key/value pairs must belong to a section\n",
-				debug->path);
+				debug.path);
 		goto error;
 	}
 
@@ -114,14 +114,14 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 		if (!strcmp(value, "true")) {
 			if (!list_node_use_passwd(node->name, node)) {
 				fprintf(stderr, "%s: Could not get information for user '%s'"
-						" on line %d\n", debug->path, node->name,
-						debug->linenum);
+						" on line %d\n", debug.path, node->name,
+						debug.linenum);
 				goto error;
 			}
 			free((void *)value);
 		} else if (strcmp(value, "false")) {
 			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
-					debug->path, key, debug->linenum);
+					debug.path, key, debug.linenum);
 			goto error;
 		}
 	} else if (!strcmp(key, "hidden")) {
@@ -129,7 +129,7 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 			node->hidden = true;
 		} else if (strcmp(value, "false")) {
 			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
-					debug->path, key, debug->linenum);
+					debug.path, key, debug.linenum);
 			goto error;
 		}
 	} else if (!strcmp(key, "name")) {
@@ -140,12 +140,12 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 		node->plan = tmp;
 		free((void *)value);
 	} else if (!strcmp(key, "plan_file")) {
-		if (!list_node_plan_file(node, value, debug))
+		if (!list_node_plan_file(node, value, false))
 			goto error;
 		free((void *)value);
 	} else {
-		fprintf(stderr, "%s: Unknown key '%s' on line %d\n", debug->path, key,
-				debug->linenum);
+		fprintf(stderr, "%s: Unknown key '%s' on line %d\n", debug.path, key,
+				debug.linenum);
 		goto error;
 	}
 	return true;
@@ -197,7 +197,9 @@ struct config_ent *config_parse(const char *path) {
 	if (config == NULL)
 		error(path);
 
-	struct debug_info debug = {.path = path, .linenum = 0};
+	debug.path = path;
+	debug.linenum = 0;
+
 	struct config_ent *list = NULL, *tail = list;
 
 	char *line = NULL;
@@ -235,7 +237,7 @@ struct config_ent *config_parse(const char *path) {
 		} else
 			value = strdup(value);
 
-		if (list_node_set(tail, key, value, &debug) == false)
+		if (list_node_set(tail, key, value) == false)
 			goto error;
 		
 		continue;
