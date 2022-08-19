@@ -1,3 +1,5 @@
+PREFIX=/usr/local
+
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 
@@ -19,6 +21,12 @@ vfingerd: $(OBJS)
 dev: CFLAGS += -g -fsanitize=address
 dev: $(SRCS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o vfingerd-dev
+
+.PHONY: install
+install: all
+	mkdir -p "${PREFIX}/bin"
+	cp vfingerd "${PREFIX}/bin"
+	chmod 755 "${PREFIX}/bin/vfingerd"
 
 clean:
 	rm -rf $(OBJS) vfingerd-dev vfingerd-dev.dSYM vfingerd
