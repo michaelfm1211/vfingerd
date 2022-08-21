@@ -74,6 +74,9 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	if (optind < argc)
+		usage();
+
 	struct config_ent *config = config_parse(config_path);
 
 	struct ev_loop *loop = EV_DEFAULT;
