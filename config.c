@@ -249,12 +249,11 @@ struct config_ent *config_parse(const char *path) {
 	free(line);
 	fclose(config);
 	return list;
-
 error:
-		free(line);
-		config_free(list);
-		fclose(config);
-		exit(1);
+	free(line);
+	config_free(list);
+	fclose(config);
+	exit(1);
 }
 
 void config_free(struct config_ent *ent) {
