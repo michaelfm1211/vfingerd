@@ -95,11 +95,11 @@ cont:
 // Write the user's plan to the client
 static void write_plan(struct client *client) {
 	size_t buf_len = strlen(client->query->name) +
-		strlen(client->query->real_name) + strlen(SERVER_SIG) + 74;
+		strlen(client->query->real_name) + strlen(SERVER_SIG) + 76;
 	char *buf = malloc(buf_len);
 
 	if (client->query->plan == NULL) {
-		buf_len -= 27;
+		buf_len -= 29;
 		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- No "
 				"Plan. --- %s\r\n", client->query->name,
 				client->query->real_name, SERVER_SIG);
@@ -110,7 +110,7 @@ static void write_plan(struct client *client) {
 			goto end;
 		buf = new_buf;
 		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start "
-				"of Plan.---\r\n%s--- End of Plan. --- "
+				"of Plan.---\r\n%s\r\n--- End of Plan. --- "
 				"%s\r\n", client->query->name,
 				client->query->real_name, client->query->plan,
 				SERVER_SIG);
