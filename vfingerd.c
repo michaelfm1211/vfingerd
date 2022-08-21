@@ -8,27 +8,6 @@
 #include "server.h"
 #include "util.h"
 
-
-/*
- * EXAMPLE RESPONSES FROM VFINGERD
- */
-
-/*
- * Username: michaelfm1211
- * --- No Such User. --- michaelfm1211/vfingerd v1.0.0
- */
-
-/*
- * Username: michaelfm1211			Real Name: Michael M.
- * --- No Plan. --- michaelfm1211/vfingerd v1.0.0
- */
-
-/*
- * Username: michaelfm1211			Real Name: Michael M.
- * Aloha and welcome to my finger page. 
- * --- End of Plan. --- michaelfm1211/vfingerd v1.0.0
- */
-
 static void sigint_cb(struct ev_loop *loop, ev_signal *watcher, int revents) {
 	UNUSED(watcher);
 	UNUSED(revents);
@@ -43,7 +22,8 @@ static void sigpipe_cb(struct ev_loop *loop, ev_signal *watcher, int revents) {
 }
 
 void usage() {
-	fprintf(stderr, "usage: vfingerd [-h] [-a addr] [-p port] [-c config]\n");
+	fprintf(stderr, "usage: vfingerd [-h] [-a addr] [-p port] [-c config]"
+			"\n");
 	exit(1);
 }
 
@@ -57,7 +37,8 @@ int main(int argc, char *argv[]) {
 		switch (ch) {
 		case 'a':
 			if (inet_aton(optarg, &addr) == 0) {
-				fprintf(stderr, "error: Invalid address '%s'\n", optarg);
+				fprintf(stderr, "error: Invalid address '%s'"
+						"\n", optarg);
 				return 1;
 			}
 			break;

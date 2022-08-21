@@ -16,18 +16,19 @@ struct debug_info {
 
 // Strips all whitespace from a string
 static void strip_whitespace(char *str) {
-    int x = 0;
+	int x = 0;
 	char quoteChar = 0;
-    for (int i = 0; str[i]; i++) {
-		if (str[i] == '\'' || str[i] == '"') {
-			if (!quoteChar) {
-				quoteChar = str[i];
-				continue;
-			} else if (str[i] == quoteChar) {
-				quoteChar = 0;
-				continue;
-			}
+
+	for (int i = 0; str[i]; i++) {
+	if (str[i] == '\'' || str[i] == '"') {
+		if (!quoteChar) {
+			quoteChar = str[i];
+			continue;
+		} else if (str[i] == quoteChar) {
+			quoteChar = 0;
+			continue;
 		}
+	}
 
         if (quoteChar || !isspace(str[i]))
             str[x++] = str[i];
@@ -59,8 +60,8 @@ static bool list_node_plan_file(struct config_ent *node, const char *path,
 	FILE *plan = fopen(path, "r");
 	if (plan == NULL) {
 		if (!suppress_errors) {
-			fprintf(stderr, "%s: Error opening file on line %d\n", debug.path,
-					debug.linenum);
+			fprintf(stderr, "%s: Error opening file on line %d\n",
+					debug.path, debug.linenum);
 			perror(path);
 		}
 		return false;
@@ -105,31 +106,34 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 static bool list_node_set(struct config_ent *node, const char *key, const char
 		*value) {
 	if (node == NULL) {
-		fprintf(stderr, "%s: All key/value pairs must belong to a section\n",
-				debug.path);
+		fprintf(stderr, "%s: All key/value pairs must belong to a "
+				"section\n", debug.path);
 		goto error;
 	}
 
 	if (!strcmp(key, "use_passwd")) {
 		if (!strcmp(value, "true")) {
 			if (!list_node_use_passwd(node->name, node)) {
-				fprintf(stderr, "%s: Could not get information for user '%s'"
-						" on line %d\n", debug.path, node->name,
-						debug.linenum);
+				fprintf(stderr, "%s: Could not get "
+						"information for user '%s'"
+						" on line %d\n", debug.path,
+						node->name, debug.linenum);
 				goto error;
 			}
 			free((void *)value);
 		} else if (strcmp(value, "false")) {
-			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
-					debug.path, key, debug.linenum);
+			fprintf(stderr, "%s: Invalid value for key '%s' on "
+					"line %d\n", debug.path, key,
+					debug.linenum);
 			goto error;
 		}
 	} else if (!strcmp(key, "hidden")) {
 		if (!strcmp(value, "true")) {
 			node->hidden = true;
 		} else if (strcmp(value, "false")) {
-			fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
-					debug.path, key, debug.linenum);
+			fprintf(stderr, "%s: Invalid value for key '%s' on "
+					"line %d\n", debug.path, key,
+					debug.linenum);
 			goto error;
 		}
 	} else if (!strcmp(key, "name")) {
@@ -144,8 +148,8 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 			goto error;
 		free((void *)value);
 	} else {
-		fprintf(stderr, "%s: Unknown key '%s' on line %d\n", debug.path, key,
-				debug.linenum);
+		fprintf(stderr, "%s: Unknown key '%s' on line %d\n",
+				debug.path, key, debug.linenum);
 		goto error;
 	}
 	return true;
@@ -224,8 +228,8 @@ struct config_ent *config_parse(const char *path) {
 		char *value = NULL;
 		char *key = strtok_r(line, "=", &value);
 		if (value == NULL) {
-			fprintf(stderr, "%s: Invalid key/value pair on line %d\n", path,
-					debug.linenum);
+			fprintf(stderr, "%s: Invalid key/value pair on line "
+					"%d\n", path, debug.linenum);
 			goto error;
 		}
 		

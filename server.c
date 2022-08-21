@@ -61,8 +61,8 @@ void server_create(struct server *serv, struct config_ent *config, struct
 	serv->addr.sin_addr = *addr;
 	serv->addr.sin_port = htons(port);
 
-	if (bind(serv->fd, (struct sockaddr *)&serv->addr, sizeof(serv->addr)) ==
-			-1)
+	if (bind(serv->fd, (struct sockaddr *)&serv->addr, sizeof(serv->addr))
+			== -1)
 		error("bind()");
 
 	if (listen(serv->fd, MAX_CLIENTS) == -1)

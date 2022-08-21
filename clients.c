@@ -100,18 +100,20 @@ static void write_plan(struct client *client) {
 
 	if (client->query->plan == NULL) {
 		buf_len -= 27;
-		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- No Plan. ---"
-				" %s\r\n", client->query->name, client->query->real_name,
-				SERVER_SIG);
+		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- No "
+				"Plan. --- %s\r\n", client->query->name,
+				client->query->real_name, SERVER_SIG);
 	} else {
 		buf_len += strlen(client->query->plan);
 		char *new_buf = realloc(buf, buf_len);
 		if (new_buf == NULL)
 			goto end;
 		buf = new_buf;
-		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start of Plan."
-				"---\r\n%s--- End of Plan. --- %s\r\n", client->query->name,
-				client->query->real_name, client->query->plan, SERVER_SIG);
+		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start "
+				"of Plan.---\r\n%s--- End of Plan. --- "
+				"%s\r\n", client->query->name,
+				client->query->real_name, client->query->plan,
+				SERVER_SIG);
 	}
 	write(client->fd, buf, buf_len-1);
 end:
