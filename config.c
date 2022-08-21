@@ -20,26 +20,47 @@ static void strip_whitespace(char *str) {
 	char quoteChar = 0;
 
 	for (int i = 0; str[i]; i++) {
-	if (str[i] == '\'' || str[i] == '"') {
-		if (!quoteChar) {
-			quoteChar = str[i];
-			continue;
-		} else if (str[i] == quoteChar) {
-			quoteChar = 0;
-			continue;
+		if (str[i] == '\'' || str[i] == '"') {
+			if (!quoteChar) {
+				quoteChar = str[i];
+				continue;
+			} else if (str[i] == quoteChar) {
+				quoteChar = 0;
+				continue;
+			}
 		}
-	}
 
-        if (quoteChar || !isspace(str[i]))
-            str[x++] = str[i];
-    }
-    str[x] = '\0';
+	        if (quoteChar || !isspace(str[i]))
+	            str[x++] = str[i];
+    	}
+    	str[x] = '\0';
 }
 
-// Rewrite all LF characters in a buffer to CRLFs.
-static void rewrite_lf_crlf(char **buf) {
-	UNUSED(buf);
-	// TODO: finish
+// Rewrite LF line endings to CRLF. buf must point to a heap-allocated string.
+static bool rewrite_lf_crlf(char **buf) {
+	char *ptr = *buf;
+	int cnt = 0;
+	for (int i = 0; ptr[i]; i++) {
+		if (ptr[i] == '\n' && (i == 0 || ptr[i-1] != '\r'))
+			cnt++;
+	}
+
+	size_t tmp_len = strlen(*buf) + cnt + 1;
+	char *tmp = malloc(tmp_len);
+
+	for (int i = 0; *ptr; i++) {
+		if (*ptr == '\n' && (i == 0 || *(ptr-1) != '\r')) {
+			strcpy(tmp+i, "\r\n");
+			i++;
+		} else
+			tmp[i] = *ptr;
+		ptr++;
+	}
+	tmp[tmp_len - 1] = '\0';
+
+	free(*buf);
+	*buf = tmp;
+	return true;
 }
 
 // Add a new node to the end of a linked list, or initalize the list if NULL
@@ -74,12 +95,14 @@ static bool list_node_plan_file(struct config_ent *node, const char *path,
 	fread(buf, plan_len, 1, plan);
 	buf[plan_len] = '\0';
 
-	if (strstr(buf, "\r\n") == NULL)
-		rewrite_lf_crlf(&buf);
-
-	node->plan = buf;
+	bool ret = true;
+	if (!rewrite_lf_crlf(&buf)) {
+		free(buf);
+		ret = false;
+	} else
+		node->plan = buf;
 	fclose(plan);
-	return true;
+	return ret;
 }
 
 // Populate a configuration entry with information from /etc/passwd
