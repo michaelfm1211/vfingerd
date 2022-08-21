@@ -5,7 +5,7 @@
 // size of arbitary buffers.
 #define BUF_SIZ 1024
 // signature of the server. only for comestics; appended to all responses
-#define SERVER_SIG "michaelfm1211/vfingerd v0.1.0"
+#define SERVER_SIG "michaelfm1211/vfingerd v0.2.0"
 // maximum number of clients the server will listen to at once
 #define MAX_CLIENTS 1024
 
