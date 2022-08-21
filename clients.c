@@ -50,18 +50,56 @@ end:
 
 // Write a list of all non-hidden users to the client
 static void write_all(struct client *client) {
-	// TODO: finish
+	const char *header = "--- Users List. ---\r\n";
+	const char *footer = "--- End of Users List. --- "SERVER_SIG"\r\n";
+	size_t header_len = strlen(header);
+	size_t footer_len = strlen(footer);
+
+	size_t buf_len = header_len + footer_len + BUF_SIZ + 1;
+	char *buf = malloc(buf_len);
+	strcpy(buf, header);
+
+	size_t len = 0;
+	struct config_ent *ptr = client->server->config;
+	while (ptr != NULL) {
+		if (ptr->hidden)
+			goto cont;
+
+		size_t name_len = strlen(ptr->name) + 2;
+		if (name_len + len > buf_len-header_len-footer_len-1) {
+			buf_len += BUF_SIZ;
+			char *newbuf = realloc(buf, buf_len);
+			if (newbuf == NULL) {
+				free(buf);
+				client->error = SERVER;
+				client->state = WRITE_ERROR;
+				return;
+			}
+			buf = newbuf;
+			continue; // do not increment
+		}
+
+		strcat(buf, ptr->name);
+		strcat(buf, "\r\n");
+		len += name_len;
+cont:
+		ptr = ptr->next;
+	}
+
+	strcat(buf, footer);
+	write(client->fd, buf, header_len+footer_len+len);
 	client->state = DISCONNECT;
+	free(buf);
 }
 
 // Write the user's plan to the client
 static void write_plan(struct client *client) {
 	size_t buf_len = strlen(client->query->name) +
-		strlen(client->query->real_name) + strlen(SERVER_SIG) + 75;
+		strlen(client->query->real_name) + strlen(SERVER_SIG) + 74;
 	char *buf = malloc(buf_len);
 
 	if (client->query->plan == NULL) {
-		buf_len -= 28;
+		buf_len -= 27;
 		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- No Plan. ---"
 				" %s\r\n", client->query->name, client->query->real_name,
 				SERVER_SIG);
@@ -71,9 +109,9 @@ static void write_plan(struct client *client) {
 		if (new_buf == NULL)
 			goto end;
 		buf = new_buf;
-		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start of Plan. ---\r\n%s--- End of Plan."
-				" --- %s\r\n", client->query->name, client->query->real_name,
-				client->query->plan, SERVER_SIG);
+		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start of Plan."
+				"---\r\n%s--- End of Plan. --- %s\r\n", client->query->name,
+				client->query->real_name, client->query->plan, SERVER_SIG);
 	}
 	write(client->fd, buf, buf_len-1);
 end:
@@ -91,6 +129,8 @@ static void write_error(struct client *client) {
 	case NONE:
 		msg = "--- An Unknown Error Occured. --- "SERVER_SIG"\r\n";
 		break;
+	case SERVER:
+		msg = "--- A Server Error Occured. ---"SERVER_SIG"\r\n";
 	case UNKNOWN_USER:
 		msg = "--- No Such User. --- "SERVER_SIG"\r\n";
 		break;

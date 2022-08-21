@@ -18,6 +18,7 @@ enum client_state {
 enum client_error {
 	BAD_QUERY,
 	NONE,
+	SERVER,
 	UNKNOWN_USER
 };
 
