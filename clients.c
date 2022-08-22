@@ -135,6 +135,7 @@ static void write_error(struct client *client) {
 		break;
 	case SERVER:
 		msg = ERR_SERVER" "SERVER_SIG"\r\n";
+		break;
 	case UNKNOWN_USER:
 		msg = ERR_UNKNOWN_USER" "SERVER_SIG"\r\n";
 		break;

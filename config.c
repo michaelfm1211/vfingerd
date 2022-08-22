@@ -146,8 +146,8 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
 	if (!strcmp(key, "use_passwd")) {
 		if (!isBooleanValue(key, value))
 			goto error;
-		else if (strcmp(value, "false"))
-			return true;
+		else if (!strcmp(value, "false"))
+			goto free_val;
 
 		if (!list_node_use_passwd(node->name, node)) {
 			fprintf(stderr, "%s: Could not get information for"
@@ -155,14 +155,15 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
 					node->name, debug.linenum);
 			goto error;
 		}
-		free((void *)value);
+		free(value);
 	} else if (!strcmp(key, "hidden")) {
 		if (!isBooleanValue(key, value))
 			goto error;
-		else if (strcmp(value, "false"))
-			return true;
+		else if (!strcmp(value, "false"))
+			goto free_val;
 
 		node->hidden = true;
+		free(value);
 	} else if (!strcmp(key, "name")) {
 		node->real_name = value;
 	} else if (!strcmp(key, "plan")) {
@@ -171,15 +172,19 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
 	} else if (!strcmp(key, "plan_file")) {
 		if (!list_node_plan_file(node, value, false))
 			goto error;
-		free((void *)value);
+		free(value);
 	} else {
 		fprintf(stderr, "%s: Unknown key '%s' on line %d\n",
 				debug.path, key, debug.linenum);
 		goto error;
 	}
+	goto end; // the end of this function is ugly to make above pretty.
+free_val:
+	free(value);
+end:
 	return true;
 error:
-	free((void *)value);
+	free(value);
 	return false;
 }
 
@@ -268,8 +273,6 @@ struct config_ent *config_parse(const char *path) {
 
 		if (list_node_set(tail, key, value) == false)
 			goto error;
-		
-		continue;
 	}
 	free(line);
 	fclose(config);
