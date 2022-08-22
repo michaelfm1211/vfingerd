@@ -123,11 +123,18 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 	return true;
 }
 
+// Checks if the value for a key/value pair is a valid boolean.
+static bool isBooleanValue(const char *key, const char *value) {
+	if (strcmp(value, "true") && strcmp(value, "false")) {
+		fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
+				debug.path, key, debug.linenum);
+	}
+}
+
 // Set a key to a value on linked list a node, or return false if the key is
 // invalid or node is NULL. value should be allocated and not freed after
 // passed to this function.
-static bool list_node_set(struct config_ent *node, const char *key, const char
-		*value) {
+static bool list_node_set(struct config_ent *node, char *key, char *value) {
 	if (node == NULL) {
 		fprintf(stderr, "%s: All key/value pairs must belong to a "
 				"section\n", debug.path);
@@ -135,37 +142,30 @@ static bool list_node_set(struct config_ent *node, const char *key, const char
 	}
 
 	if (!strcmp(key, "use_passwd")) {
-		if (!strcmp(value, "true")) {
-			if (!list_node_use_passwd(node->name, node)) {
-				fprintf(stderr, "%s: Could not get "
-						"information for user '%s'"
-						" on line %d\n", debug.path,
-						node->name, debug.linenum);
-				goto error;
-			}
-			free((void *)value);
-		} else if (strcmp(value, "false")) {
-			fprintf(stderr, "%s: Invalid value for key '%s' on "
-					"line %d\n", debug.path, key,
-					debug.linenum);
+		if (!isBooleanValue(key, value))
+			goto error;
+		else if (strcmp(value, "false"))
+			return true;
+
+		if (!list_node_use_passwd(node->name, node)) {
+			fprintf(stderr, "%s: Could not get information for"
+					" user '%s' on line %d\n", debug.path,
+					node->name, debug.linenum);
 			goto error;
 		}
+		free((void *)value);
 	} else if (!strcmp(key, "hidden")) {
-		if (!strcmp(value, "true")) {
-			node->hidden = true;
-		} else if (strcmp(value, "false")) {
-			fprintf(stderr, "%s: Invalid value for key '%s' on "
-					"line %d\n", debug.path, key,
-					debug.linenum);
+		if (!isBooleanValue(key, value))
 			goto error;
-		}
+		else if (strcmp(value, "false"))
+			return true;
+
+		node->hidden = true;
 	} else if (!strcmp(key, "name")) {
 		node->real_name = value;
 	} else if (!strcmp(key, "plan")) {
-		char *tmp = malloc(strlen(value) + 3);
-		sprintf(tmp, "%s\r\n", value);
-		node->plan = tmp;
-		free((void *)value);
+		rewrite_lf_crlf(&value);
+		node->plan = value;
 	} else if (!strcmp(key, "plan_file")) {
 		if (!list_node_plan_file(node, value, false))
 			goto error;
