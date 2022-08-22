@@ -7,6 +7,19 @@
 #include <ev.h>
 #include "config.h"
 
+#define USER_LIST_HEADER "--- Users List. ---"
+#define USER_LIST_FOOTER "--- End of Users List. ---"
+
+#define NO_PLAN "--- No Plan. ---"
+
+#define PLAN_HEADER "--- Start of Plan. ---"
+#define PLAN_FOOTER "--- End of Plan. ---"
+
+#define ERR_BAD_QUERY "--- Bad Query. ---"
+#define ERR_UNKNOWN "--- An Unknown Error Occured. ---"
+#define ERR_SERVER "--- A Server Error Occured. ---"
+#define ERR_UNKNOWN_USER "--- No Such User. ---"
+
 enum client_state {
 	READ_QUERY,
 	WRITE_ALL,

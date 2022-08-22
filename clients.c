@@ -50,8 +50,8 @@ end:
 
 // Write a list of all non-hidden users to the client
 static void write_all(struct client *client) {
-	const char *header = "--- Users List. ---\r\n";
-	const char *footer = "--- End of Users List. --- "SERVER_SIG"\r\n";
+	const char *header = USER_LIST_HEADER"\r\n";
+	const char *footer = USER_LIST_FOOTER" "SERVER_SIG"\r\n";
 	size_t header_len = strlen(header);
 	size_t footer_len = strlen(footer);
 
@@ -94,29 +94,31 @@ cont:
 
 // Write the user's plan to the client
 static void write_plan(struct client *client) {
-	size_t buf_len = strlen(client->query->name) +
-		strlen(client->query->real_name) + strlen(SERVER_SIG) + 76;
-	char *buf = malloc(buf_len);
+	size_t buf_len;
+	char *buf;
 
 	if (client->query->plan == NULL) {
-		buf_len -= 29;
-		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- No "
-				"Plan. --- %s\r\n", client->query->name,
-				client->query->real_name, SERVER_SIG);
+		buf_len = strlen(client->query->name) +
+				strlen(client->query->real_name) +
+				sizeof(NO_PLAN)-1 + sizeof(SERVER_SIG)-1 + 30;
+		buf = malloc(buf_len);
+		sprintf(buf, "Username: %s\tReal Name: %s\r\n\r\n"NO_PLAN
+				" "SERVER_SIG"\r\n", client->query->name,
+				client->query->real_name);
 	} else {
-		buf_len += strlen(client->query->plan);
-		char *new_buf = realloc(buf, buf_len);
-		if (new_buf == NULL)
-			goto end;
-		buf = new_buf;
-		sprintf(buf, "Username: %s\t\tReal Name: %s\r\n\r\n--- Start "
-				"of Plan.---\r\n%s\r\n--- End of Plan. --- "
-				"%s\r\n", client->query->name,
-				client->query->real_name, client->query->plan,
-				SERVER_SIG);
+		buf_len = strlen(client->query->name) +
+				strlen(client->query->real_name) +
+				sizeof(PLAN_HEADER)-1 +
+				strlen(client->query->plan) +
+				sizeof(PLAN_FOOTER)-1 + sizeof(SERVER_SIG)-1 +
+				34;
+		buf = malloc(buf_len);
+		sprintf(buf, "Username: %s\tReal Name: %s\r\n\r\n"PLAN_HEADER
+				"\r\n%s\r\n"PLAN_FOOTER" "SERVER_SIG"\r\n",
+				client->query->name, client->query->real_name,
+				client->query->plan);
 	}
 	write(client->fd, buf, buf_len-1);
-end:
 	client->state = DISCONNECT;
 	free(buf);
 }
@@ -126,15 +128,15 @@ static void write_error(struct client *client) {
 	char *msg = NULL;
 	switch (client->error) {
 	case BAD_QUERY:
-		msg = "--- Bad Query. ---"SERVER_SIG"\r\n";
+		msg = ERR_BAD_QUERY" "SERVER_SIG"\r\n";
 		break;
 	case NONE:
-		msg = "--- An Unknown Error Occured. --- "SERVER_SIG"\r\n";
+		msg = ERR_UNKNOWN" "SERVER_SIG"\r\n";
 		break;
 	case SERVER:
-		msg = "--- A Server Error Occured. ---"SERVER_SIG"\r\n";
+		msg = ERR_SERVER" "SERVER_SIG"\r\n";
 	case UNKNOWN_USER:
-		msg = "--- No Such User. --- "SERVER_SIG"\r\n";
+		msg = ERR_UNKNOWN_USER" "SERVER_SIG"\r\n";
 		break;
 	}
 	write(client->fd, msg, strlen(msg));
