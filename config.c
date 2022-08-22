@@ -128,7 +128,9 @@ static bool isBooleanValue(const char *key, const char *value) {
 	if (strcmp(value, "true") && strcmp(value, "false")) {
 		fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
 				debug.path, key, debug.linenum);
+		return false;
 	}
+	return true;
 }
 
 // Set a key to a value on linked list a node, or return false if the key is
