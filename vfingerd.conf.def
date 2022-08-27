@@ -5,6 +5,10 @@ use_passwd = true
 name = "Server Information"
 plan_file = "/etc/motd"
 
+[motd]
+alias = "info"
+hidden = true
+
 [vfingerd]
 name = "vfingerd"
 plan = <<EOF

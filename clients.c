@@ -9,6 +9,17 @@
 #include "server.h"
 #include "util.h"
 
+// Resolves a username to a config_ent
+static struct config_ent *resolveUsername(struct config_ent *config,
+		const char *uname) {
+	while (config != NULL) {
+		if (!strcmp(config->name, uname))
+			return config;
+		config = config->next;
+	}
+	return NULL;
+}
+
 // Read from the client and set client->query to the config_ent that is
 // requested.
 static void read_query(struct ev_loop *loop, struct client *client) {
@@ -28,20 +39,17 @@ static void read_query(struct ev_loop *loop, struct client *client) {
 		goto end;
 	}
 
-	struct config_ent *ptr = client->server->config;
-	while (ptr != NULL) {
-		if (!strcmp(ptr->name, query)) {
-			client->query = ptr;
-			break;
-		}
-		ptr = ptr->next;
-	}
-
+	client->query = resolveUsername(client->server->config, query);
 	if (client->query == NULL) {
 		client->error = UNKNOWN_USER;
 		client->state = WRITE_ERROR;
 	} else
 		client->state = WRITE_PLAN;
+
+	if (client->query->aliasOf)
+		client->query = resolveUsername(client->server->config,
+				client->query->aliasOf);
+
 end:
 	ev_io_stop(loop, &client->io);
 	ev_io_init(&client->io, client_cb, client->fd, EV_WRITE);

@@ -14,7 +14,7 @@ struct debug_info {
 	int linenum;
 } debug;
 
-// Strips all whitespace from a string
+// Strips all whitespace from a string.
 static void strip_whitespace(char *str) {
 	int x = 0;
 	char quoteChar = 0;
@@ -63,7 +63,17 @@ static bool rewrite_lf_crlf(char **buf) {
 	return true;
 }
 
-// Add a new node to the end of a linked list, or initalize the list if NULL
+// Checks if the value for a key/value pair is a valid boolean.
+static bool isBooleanValue(const char *key, const char *value) {
+	if (strcmp(value, "true") && strcmp(value, "false")) {
+		fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
+				debug.path, key, debug.linenum);
+		return false;
+	}
+	return true;
+}
+
+// Add a new node to the end of a linked list, or initalize the list if NULL.
 static void list_add_node(struct config_ent **list, struct config_ent **tail) {
 	struct config_ent *new = calloc(1, sizeof(struct config_ent));
 	if (*list == NULL)
@@ -105,7 +115,7 @@ static bool list_node_plan_file(struct config_ent *node, const char *path,
 	return ret;
 }
 
-// Populate a configuration entry with information from /etc/passwd
+// Populate a configuration entry with information from /etc/passwd.
 static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 	struct passwd *pw = getpwnam(name);
 	if (pw == NULL)
@@ -120,16 +130,6 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 	} else
 		node->plan = NULL;
 
-	return true;
-}
-
-// Checks if the value for a key/value pair is a valid boolean.
-static bool isBooleanValue(const char *key, const char *value) {
-	if (strcmp(value, "true") && strcmp(value, "false")) {
-		fprintf(stderr, "%s: Invalid value for key '%s' on line %d\n",
-				debug.path, key, debug.linenum);
-		return false;
-	}
 	return true;
 }
 
@@ -164,6 +164,8 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
 
 		node->hidden = true;
 		free(value);
+	} else if (!strcmp(key, "alias")) {
+		node->aliasOf = value;
 	} else if (!strcmp(key, "name")) {
 		node->real_name = value;
 	} else if (!strcmp(key, "plan")) {
@@ -289,6 +291,7 @@ void config_free(struct config_ent *ent) {
 		return;
 	while (ent != NULL) {
 		struct config_ent *next = ent->next;
+		free((void *)ent->aliasOf);
 		free((void *)ent->name);
 		free((void *)ent->real_name);
 		free((void *)ent->plan);
