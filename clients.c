@@ -6,6 +6,7 @@
 #include <ev.h>
 #include "clients.h"
 #include "config.h"
+#include "ev.h"
 #include "server.h"
 #include "util.h"
 
@@ -152,7 +153,8 @@ static void write_error(struct client *client) {
 	client->state = DISCONNECT;
 }
 
-static void disconnect(struct ev_loop *loop, struct client *client) {
+void client_disconnect(struct ev_loop *loop, struct client *client) {
+	ev_timer_stop(loop, &client->timeout.timer);
 	ev_io_stop(loop, &client->io);
 	shutdown(client->fd, SHUT_RDWR);
 	close(client->fd);
@@ -177,7 +179,7 @@ void client_cb(struct ev_loop *loop, ev_io *watcher, int revents) {
 		write_error(client);
 		break;
 	case DISCONNECT:
-		disconnect(loop, client);
+		client_disconnect(loop, client);
 		break;
 	}
 }

@@ -1,3 +1,3 @@
 # Todo
-- **server.c** enforce a maximum connection time with an `ev_timer` to prevent
-	Slowloris attacks
+- setup clang-format to make code prettier.
+- `server.c` add logging

@@ -18,9 +18,6 @@ struct server {
 	struct client clients[MAX_CLIENTS];
 };
 
-// Callback for events on the server socket
-void server_cb(struct ev_loop *loop, ev_io *watcher, int revents);
-
 // Create a server then listen for incoming clients.
 void server_create(struct server *serv, struct config_ent *config, struct
 		in_addr *addr, int port);

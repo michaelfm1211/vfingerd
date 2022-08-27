@@ -8,6 +8,8 @@
 #define SERVER_SIG "michaelfm1211/vfingerd v0.2.0"
 // maximum number of clients the server will listen to at once
 #define MAX_CLIENTS 1024
+// seconds since connection before server will terminate the connection
+#define CONN_TIMEOUT 15.
 
 #define UNUSED(x) (void)x
 

@@ -35,8 +35,14 @@ enum client_error {
 	UNKNOWN_USER
 };
 
+struct client_timeout {
+	ev_timer timer;
+	struct client *client;
+};
+
 struct client {
 	ev_io io;
+	struct client_timeout timeout;
 	struct server *server;
 	enum client_state state;
 	struct config_ent *query;
@@ -47,3 +53,5 @@ struct client {
 // Callback for events on a client socket
 void client_cb(struct ev_loop *loop, ev_io *watcher, int revents);
 
+// Disconnect a client.
+void client_disconnect(struct ev_loop *loop, struct client *client);
