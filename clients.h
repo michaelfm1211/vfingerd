@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include <ev.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <ev.h>
+
 #include "config.h"
 
 #define USER_LIST_HEADER "--- Users List. ---"
@@ -21,37 +22,37 @@
 #define ERR_UNKNOWN_USER "--- No Such User. ---"
 
 enum client_state {
-	READ_QUERY,
-	WRITE_ALL,
-	WRITE_PLAN,
-	WRITE_ERROR,
-	DISCONNECT
+    READ_QUERY,
+    WRITE_ALL,
+    WRITE_PLAN,
+    WRITE_ERROR,
+    DISCONNECT
 };
 
 enum client_error {
-	BAD_QUERY,
-	NONE,
-	SERVER,
-	UNKNOWN_USER
+    BAD_QUERY,
+    NONE,
+    SERVER,
+    UNKNOWN_USER
 };
 
 struct client_timeout {
-	ev_timer timer;
-	struct client *client;
+    ev_timer timer;
+    struct client* client;
 };
 
 struct client {
-	ev_io io;
-	struct client_timeout timeout;
-	struct server *server;
-	enum client_state state;
-	struct config_ent *query;
-	enum client_error error;
-	int fd;
+    ev_io io;
+    struct client_timeout timeout;
+    struct server* server;
+    enum client_state state;
+    struct config_ent* query;
+    enum client_error error;
+    int fd;
 };
 
-// Callback for events on a client socket
-void client_cb(struct ev_loop *loop, ev_io *watcher, int revents);
-
 // Disconnect a client.
-void client_disconnect(struct ev_loop *loop, struct client *client);
+void client_disconnect(struct ev_loop* loop, struct client* client);
+
+// Callback for events on a client socket
+void client_cb(struct ev_loop* loop, ev_io* watcher, int revents);
