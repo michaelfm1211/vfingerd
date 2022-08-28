@@ -23,9 +23,7 @@ static void sigpipe_cb(struct ev_loop *loop, ev_signal *watcher, int revents) {
 }
 
 void usage() {
-  fprintf(stderr,
-          "usage: vfingerd [-h] [-a addr] [-p port] [-c config]"
-          "\n");
+  fprintf(stderr, "usage: vfingerd [-h] [-a addr] [-p port] [-c config]\n");
   exit(1);
 }
 
@@ -39,10 +37,7 @@ int main(int argc, char *argv[]) {
     switch (ch) {
       case 'a':
         if (inet_aton(optarg, &addr) == 0) {
-          fprintf(stderr,
-                  "error: Invalid address '%s'"
-                  "\n",
-                  optarg);
+          fprintf(stderr, "error: Invalid address '%s'\n", optarg);
           return 1;
         }
         break;
