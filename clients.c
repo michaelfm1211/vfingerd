@@ -47,11 +47,15 @@ static void read_query(struct ev_loop *loop, struct client *client) {
   char *cr = strstr(query, "\r\n");
   if (cr == NULL) {
     client->error = BAD_QUERY;
-    client->state = WRITE_ERROR;
-    goto end;
+    goto error;
   }
   *cr = '\0';
 
+  // don't print if it could contain dangerous characters
+  if (!validUsername(query)) {
+    client->error = UNKNOWN_USER;
+    goto error;
+  }
   log_query(client->ipaddr, query);
 
   if (*query == '\0') {
@@ -62,8 +66,7 @@ static void read_query(struct ev_loop *loop, struct client *client) {
   client->query = resolveUsername(client->server->config, query);
   if (client->query == NULL) {
     client->error = UNKNOWN_USER;
-    client->state = WRITE_ERROR;
-    goto end;
+    goto error;
   } else
     client->state = WRITE_PLAN;
 
@@ -71,6 +74,9 @@ static void read_query(struct ev_loop *loop, struct client *client) {
     client->query =
         resolveUsername(client->server->config, client->query->aliasOf);
 
+  goto end;
+error:
+  client->state = WRITE_ERROR;
 end:
   ev_io_stop(loop, &client->io);
   ev_io_init(&client->io, client_cb, client->fd, EV_WRITE);

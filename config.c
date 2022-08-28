@@ -136,9 +136,7 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
 // passed to this function.
 static bool list_node_set(struct config_ent *node, char *key, char *value) {
   if (node == NULL) {
-    fprintf(stderr,
-            "%s: All key/value pairs must belong to a "
-            "section\n",
+    fprintf(stderr, "%s: All key/value pairs must belong to a section\n",
             debug.path);
     goto error;
   }
@@ -150,9 +148,7 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
       goto free_val;
 
     if (!list_node_use_passwd(node->name, node)) {
-      fprintf(stderr,
-              "%s: Could not get information for"
-              " user '%s' on line %d\n",
+      fprintf(stderr, "%s: Could not get information for user '%s' on line %d\n",
               debug.path, node->name, debug.linenum);
       goto error;
     }
@@ -166,6 +162,11 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
     node->hidden = true;
     free(value);
   } else if (!strcmp(key, "alias")) {
+    if (!validUsername(value)) {
+      fprintf(stderr, "%s: Invalid username '%s' on line '%d'\n", debug.path,
+              value, debug.linenum);
+      goto error;
+    }
     node->aliasOf = value;
   } else if (!strcmp(key, "name")) {
     node->real_name = value;
@@ -249,6 +250,11 @@ struct config_ent *config_parse(const char *path) {
       char *name = strdup(line + 1);
       name[linelen - 3] = '\0';
       list_add_node(&list, &tail);
+      if (!validUsername(name)) {
+        fprintf(stderr, "%s: Invalid username '%s' on line %d\n", path, name,
+                debug.linenum);
+        goto error;
+      }
       tail->name = name;
       continue;
     }
@@ -257,10 +263,8 @@ struct config_ent *config_parse(const char *path) {
     char *value = NULL;
     char *key = strtok_r(line, "=", &value);
     if (value == NULL) {
-      fprintf(stderr,
-              "%s: Invalid key/value pair on line "
-              "%d\n",
-              path, debug.linenum);
+      fprintf(stderr, "%s: Invalid key/value pair on line %d\n", path,
+              debug.linenum);
       goto error;
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 // default path for the configuration file
 #define DEF_CONFIG "/etc/vfingerd.conf"
 // size of arbitary buffers.
@@ -13,4 +15,11 @@
 
 #define UNUSED(x) (void)x
 
+// Run perror() and exit with status code 1.
 void error(const char *msg);
+
+// Return true if uname 1) begins with a lowercase letter or underscore, 2)
+// contains only lower case letters, digits, underscores, or dashes (except for
+// the last character, which may also be a dollar sign), and 3) is less than 33
+// characters long. Otherwise, returns false, unless uname starts with null.
+bool validUsername(const char *uname);
