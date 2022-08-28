@@ -45,12 +45,13 @@ static void read_query(struct ev_loop *loop, struct client *client) {
   if (client->query == NULL) {
     client->error = UNKNOWN_USER;
     client->state = WRITE_ERROR;
+    goto end;
   } else
     client->state = WRITE_PLAN;
 
   if (client->query->aliasOf)
-    client->query =
-        resolveUsername(client->server->config, client->query->aliasOf);
+    client->query = resolveUsername(client->server->config,
+        client->query->aliasOf);
 
 end:
   ev_io_stop(loop, &client->io);
