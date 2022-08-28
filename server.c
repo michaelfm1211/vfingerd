@@ -22,30 +22,32 @@ static void timeout_cb(struct ev_loop *loop, ev_timer *watcher, int revents) {
 static void server_cb(struct ev_loop *loop, ev_io *watcher, int revents) {
   UNUSED(revents);
   struct server *serv = (struct server *)watcher;
-  int client_fd = accept(serv->fd, NULL, NULL);
-  if (client_fd == -1) {
-    if (errno != EAGAIN) perror("accept()");
-    return;
+  while (1) {  // keep looping until we accept everything
+    int client_fd = accept(serv->fd, NULL, NULL);
+    if (client_fd == -1) {
+      if (errno != EAGAIN || errno != EWOULDBLOCK) perror("accept()");
+      break;
+    }
+
+    struct client *client = &(serv->clients[serv->num_conn++]);
+    client->server = serv;
+    client->state = READ_QUERY;
+    client->query = NULL;
+    client->error = NONE;
+    client->fd = client_fd;
+    int flags = fcntl(client->fd, F_GETFL) | O_NONBLOCK;
+    if (fcntl(client->fd, F_SETFL, flags) == -1) {
+      perror("fcntl()");
+      break;
+    }
+
+    client->timeout.client = client;
+    ev_timer_init(&client->timeout.timer, timeout_cb, CONN_TIMEOUT, 0);
+    ev_timer_start(loop, &client->timeout.timer);
+
+    ev_io_init(&client->io, client_cb, client->fd, EV_READ);
+    ev_io_start(loop, &client->io);
   }
-
-  struct client *client = &(serv->clients[serv->num_conn++]);
-  client->server = serv;
-  client->state = READ_QUERY;
-  client->query = NULL;
-  client->error = NONE;
-  client->fd = client_fd;
-  int flags = fcntl(client->fd, F_GETFL) | O_NONBLOCK;
-  if (fcntl(client->fd, F_SETFL, flags) == -1) {
-    perror("fcntl()");
-    ev_break(loop, EVBREAK_ALL);
-  }
-
-  client->timeout.client = client;
-  ev_timer_init(&client->timeout.timer, timeout_cb, CONN_TIMEOUT, 0);
-  ev_timer_start(loop, &client->timeout.timer);
-
-  ev_io_init(&client->io, client_cb, client->fd, EV_READ);
-  ev_io_start(loop, &client->io);
 }
 
 void server_create(struct server *serv, struct config_ent *config,
