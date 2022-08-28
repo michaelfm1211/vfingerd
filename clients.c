@@ -1,16 +1,32 @@
 #include "clients.h"
 
+#include <arpa/inet.h>
 #include <ev.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "config.h"
 #include "ev.h"
 #include "server.h"
 #include "util.h"
+
+// Logs a request to stdout in the format of "[time] ipaddr    query"
+static void log_query(const char *ipaddr, const char *query) {
+  if (*query == '\0') query = "ALL";
+
+  time_t raw_time = time(NULL);
+  if (raw_time == (time_t)-1) return;
+  struct tm curr_time;
+  if (!localtime_r(&raw_time, &curr_time)) return;
+  char timestr[27];
+  strftime(timestr, 27, "%d/%b/%Y:%H:%M:%S %z", &curr_time);
+
+  printf("[%s] %s\t%s\n", timestr, ipaddr, query);
+}
 
 // Resolves a username to a config_ent
 static struct config_ent *resolveUsername(struct config_ent *config,
@@ -36,6 +52,8 @@ static void read_query(struct ev_loop *loop, struct client *client) {
   }
   *cr = '\0';
 
+  log_query(client->ipaddr, query);
+
   if (*query == '\0') {
     client->state = WRITE_ALL;
     goto end;
@@ -50,8 +68,8 @@ static void read_query(struct ev_loop *loop, struct client *client) {
     client->state = WRITE_PLAN;
 
   if (client->query->aliasOf)
-    client->query = resolveUsername(client->server->config,
-        client->query->aliasOf);
+    client->query =
+        resolveUsername(client->server->config, client->query->aliasOf);
 
 end:
   ev_io_stop(loop, &client->io);

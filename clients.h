@@ -38,6 +38,7 @@ struct client_timeout {
 
 struct client {
   ev_io io;
+  char ipaddr[INET6_ADDRSTRLEN];
   struct client_timeout timeout;
   struct server *server;
   enum client_state state;
