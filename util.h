@@ -13,4 +13,4 @@
 
 #define UNUSED(x) (void)x
 
-void error(const char* msg);
+void error(const char *msg);
