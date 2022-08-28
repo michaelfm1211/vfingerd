@@ -148,7 +148,8 @@ static bool list_node_set(struct config_ent *node, char *key, char *value) {
       goto free_val;
 
     if (!list_node_use_passwd(node->name, node)) {
-      fprintf(stderr, "%s: Could not get information for user '%s' on line %d\n",
+      fprintf(stderr,
+              "%s: Could not get information for user '%s' on line %d\n",
               debug.path, node->name, debug.linenum);
       goto error;
     }

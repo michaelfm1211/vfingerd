@@ -64,15 +64,15 @@ static void read_query(struct ev_loop *loop, struct client *client) {
   }
 
   client->query = resolveUsername(client->server->config, query);
+  if (client->query->aliasOf)
+    client->query =
+        resolveUsername(client->server->config, client->query->aliasOf);
+
   if (client->query == NULL) {
     client->error = UNKNOWN_USER;
     goto error;
   } else
     client->state = WRITE_PLAN;
-
-  if (client->query->aliasOf)
-    client->query =
-        resolveUsername(client->server->config, client->query->aliasOf);
 
   goto end;
 error:
