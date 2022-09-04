@@ -32,9 +32,9 @@ the config file. See the *CONFIGURATION* section below for help setting up
 
 *-c* _config_
 	Read and load the users listed in config file _config_. The default is
-	to use /etc/vfingerd.conf. When installed, a default config file is
-	copied to /etc/vfingerd.conf. This file may require editing to work on
-	your machine.
+	to use /etc/vfingerd.conf. During installation, a default config file
+	may be copied to /etc/vfingerd.conf (see the README for more details).
+	This file may require editing to work on your machine.
 
 # CONFIGURATION
 
