@@ -1,3 +1,4 @@
 # Todo
 - add tests and find more bugs
-- write a man page
+- test on more systems and improve compatibility
+- *config.c* allow config file to include other files
