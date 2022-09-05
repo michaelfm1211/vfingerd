@@ -18,7 +18,7 @@ docs: vfingerd.1
 
 vfingerd: $(OBJS)
 	@echo [LD] $@
-	@$(CC) $(LDFLAGS) $^ -o vfingerd
+	@$(CC) $^ -o vfingerd $(LDFLAGS)
 
 vfingerd.1: vfingerd.1.scd
 	@echo [SCDOC] $@
@@ -27,7 +27,7 @@ vfingerd.1: vfingerd.1.scd
 .PHONY: dev
 dev: CFLAGS += -g -fsanitize=address
 dev: $(SRCS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o vfingerd-dev
+	$(CC) $(CFLAGS) $^ -o vfingerd-dev $(LDFLAGS)
 
 .PHONY: install
 install: all
