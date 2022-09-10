@@ -18,7 +18,7 @@ struct debug_info {
   int linenum;
 } debug;
 
-#define MAX_INCLUDED 64
+#define MAX_NESTED_INCLUDE 64
 int included_files = 0;
 
 // Strips all whitespace from a string.
@@ -237,8 +237,11 @@ static char *heredoc(FILE *file, const char *delim, struct debug_info *debug) {
 // Runs config_parse for an included file. Returns false on error, otherwise
 // true.
 static bool include_file(const char *path) {
-  if (included_files >= MAX_INCLUDED) {
-    fprintf(stderr, "Too many included files (maximum is %d)\n", MAX_INCLUDED);
+  if (included_files >= MAX_NESTED_INCLUDE) {
+    fprintf(stderr,
+            "Too many nested included files (maximum is %d). You may have a "
+            "circular include.\n",
+            MAX_NESTED_INCLUDE);
     return false;
   }
 
@@ -246,6 +249,7 @@ static bool include_file(const char *path) {
   included_files++;
   config_parse(path);
   debug = tmp;
+  included_files--;
   return true;
 }
 
