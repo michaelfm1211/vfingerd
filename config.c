@@ -11,10 +11,15 @@
 
 #include "util.h"
 
+struct config_ent *list = NULL, *tail = NULL;
+
 struct debug_info {
   const char *path;
   int linenum;
 } debug;
+
+#define MAX_INCLUDED 64
+int included_files = 0;
 
 // Strips all whitespace from a string.
 static void strip_whitespace(char *str) {
@@ -192,7 +197,7 @@ error:
   return false;
 }
 
-// Handle basic heredoc fucntionality. Returns an allocated value string or
+// Handle basic heredoc functionality. Returns an allocated value string or
 // NULL if an error occurs.
 static char *heredoc(FILE *file, const char *delim, struct debug_info *debug) {
   char full_delim[strlen(delim) + 2];
@@ -229,14 +234,28 @@ static char *heredoc(FILE *file, const char *delim, struct debug_info *debug) {
   return buf;
 }
 
+// Runs config_parse for an included file. Returns false on error, otherwise
+// true.
+static bool include_file(const char *path) {
+  if (included_files >= MAX_INCLUDED) {
+    fprintf(stderr, "Too many included files (maximum is %d)\n", MAX_INCLUDED);
+    return false;
+  }
+
+  struct debug_info tmp = debug;
+  included_files++;
+  config_parse(path);
+  debug = tmp;
+  return true;
+}
+
 struct config_ent *config_parse(const char *path) {
   FILE *config = fopen(path, "r");
   if (config == NULL) error(path);
+  if (tail == NULL) tail = list;
 
   debug.path = path;
   debug.linenum = 0;
-
-  struct config_ent *list = NULL, *tail = list;
 
   char *line = NULL;
   size_t linecap = 0;
@@ -245,6 +264,12 @@ struct config_ent *config_parse(const char *path) {
     debug.linenum++;
     if (linelen < 2 || line[0] == '#') continue;
     strip_whitespace(line);
+
+    // If line starts with .include, run recursively
+    if (!strncmp(line, ".include", 8)) {
+      if (!include_file(line + 8)) goto error;
+      continue;
+    }
 
     // Check for and handle a new entry
     if (line[0] == '[') {
