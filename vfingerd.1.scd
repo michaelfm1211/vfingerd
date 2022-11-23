@@ -24,7 +24,7 @@ the config file. See the *CONFIGURATION* section below for help setting up
 
 *-a* _addr_
 	Start the server to listen on address _addr_. The default is to listen
-	on all addressed, or 0.0.0.0.
+	on all addresses, or 0.0.0.0.
 
 *-p* _port_
 	Start the server to listen on port _port_. The default is to listen on
@@ -40,7 +40,7 @@ the config file. See the *CONFIGURATION* section below for help setting up
 
 *vfingerd* uses custom syntax for its config files, although it is intentionally
 very similar to standard .ini files. Clear examples are provided in the default
-config file. Sections are independent of eachother, and each section configures
+config file. Sections are independent of each other, and each section configures
 a single user. The section name is the user's finger username. The following is
 a list of all possible keys that may be defined for a user:
 
@@ -56,9 +56,9 @@ a list of all possible keys that may be defined for a user:
 	is done.
 
 *alias* = string (default: none, not required)
-	If a value is specfified, the user will become an alias of another user
-	specified by the provided string. Resolution of aliases are done as
-	requests are handled and not cached, so large numbers of aliases are not
+	If a value is specified, the user will become an alias of another user
+	specified by the provided string. Alias resolution is done as requests
+	are handled and are not cached, so large numbers of aliases is not
 	recommended. Generally, if a value is specified, then no further
 	configuration is needed. One notable exception is that if a user is
 	aliased to hidden user, both users must have *hidden* set to _true_ for
@@ -76,7 +76,7 @@ a list of all possible keys that may be defined for a user:
 *plan\_file* = string (default: none, not required)
 	Specifies the path to the user's plan file. The contents of the file is
 	read and cached in memory at server startup, so if the server must be
-	restarted if the contents of a user's plan file changes.
+	restarted if the contents of a user's plan file change.
 
 # STANDARDS
 
