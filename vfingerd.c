@@ -22,7 +22,7 @@ static void sigpipe_cb(struct ev_loop *loop, ev_signal *watcher, int revents) {
   UNUSED(loop);
 }
 
-void usage() {
+void usage(void) {
   fprintf(stderr, "usage: vfingerd [-h] [-a addr] [-p port] [-c config]\n");
   exit(1);
 }

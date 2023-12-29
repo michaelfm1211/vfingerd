@@ -3,7 +3,7 @@ PREFIX=/usr/local
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 
-CFLAGS += -Wall -Wextra -std=c99 -pedantic
+CFLAGS += -Wall -Wextra -pedantic
 LDFLAGS += -lev
 
 all: CFLAGS += -c
@@ -39,4 +39,4 @@ install: all
 	chmod 644 "${PREFIX}/share/man/man1/vfingerd.1"
 
 clean:
-	rm -rf $(OBJS) vfingerd-dev vfingerd-dev.dSYM vfingerd
+	rm -rf $(OBJS) vfingerd-dev vfingerd-dev.dSYM vfingerd vfingerd.1
