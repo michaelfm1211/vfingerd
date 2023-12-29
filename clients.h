@@ -8,6 +8,8 @@
 
 #include "config.h"
 
+#define MAX_ALIAS_DEPTH 100
+
 #define USER_LIST_HEADER "--- Users List. ---"
 #define USER_LIST_FOOTER "--- End of Users List. ---"
 

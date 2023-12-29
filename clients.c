@@ -42,7 +42,10 @@ static struct config_ent *resolveUsername(struct config_ent *config,
 // requested.
 static void read_query(struct ev_loop *loop, struct client *client) {
   char query[BUF_SIZ];
-  read(client->fd, query, BUF_SIZ - 1);
+  if (read(client->fd, query, BUF_SIZ - 1) == -1) {
+    client->error = SERVER;
+    goto error;
+  }
 
   char *cr = strstr(query, "\r\n");
   if (cr == NULL) {
@@ -63,16 +66,32 @@ static void read_query(struct ev_loop *loop, struct client *client) {
     goto end;
   }
 
+  // try to get the user for this query
   client->query = resolveUsername(client->server->config, query);
-  if (client->query->aliasOf)
-    client->query =
-        resolveUsername(client->server->config, client->query->aliasOf);
-
   if (client->query == NULL) {
     client->error = UNKNOWN_USER;
     goto error;
-  } else
-    client->state = WRITE_PLAN;
+  }
+
+  // keep resolving aliases until we get to a concrete user, reach a dead end,
+  // or go past the maximum alias depth
+  int i = 0;
+  while (client->query->aliasOf && i < MAX_ALIAS_DEPTH) {
+    client->query =
+        resolveUsername(client->server->config, client->query->aliasOf);
+    if (client->query == NULL) {
+      client->error = UNKNOWN_USER;
+      goto error;
+    }
+    i++;
+  }
+  if (i >= MAX_ALIAS_DEPTH) {
+    client->error = UNKNOWN_USER;
+    goto error;
+  }
+
+  // if we're here, then everything should be ok
+  client->state = WRITE_PLAN;
 
   goto end;
 error:
