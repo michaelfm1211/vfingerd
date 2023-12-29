@@ -133,19 +133,19 @@ static void write_plan(struct client *client) {
 
   if (client->query->plan == NULL) {
     buf_len = strlen(client->query->name) + strlen(client->query->real_name) +
-              sizeof(NO_PLAN) - 1 + sizeof(SERVER_SIG) - 1 + 30;
+              sizeof(NO_PLAN) - 1 + sizeof(SERVER_SIG) - 1 + 31;
     buf = malloc(buf_len);
     snprintf(buf, buf_len,
-             "Username: %s\nReal Name: %s\r\n\r\n" NO_PLAN " " SERVER_SIG
+             "Username: %s\r\nReal Name: %s\r\n\r\n" NO_PLAN " " SERVER_SIG
              "\r\n",
              client->query->name, client->query->real_name);
   } else {
     buf_len = strlen(client->query->name) + strlen(client->query->real_name) +
               sizeof(PLAN_HEADER) - 1 + strlen(client->query->plan) +
-              sizeof(PLAN_FOOTER) - 1 + sizeof(SERVER_SIG) - 1 + 34;
+              sizeof(PLAN_FOOTER) - 1 + sizeof(SERVER_SIG) - 1 + 35;
     buf = malloc(buf_len);
     snprintf(buf, buf_len,
-             "Username: %s\nReal Name: %s\r\n\r\n" PLAN_HEADER
+             "Username: %s\r\nReal Name: %s\r\n\r\n" PLAN_HEADER
              "\r\n%s\r\n" PLAN_FOOTER " " SERVER_SIG "\r\n",
              client->query->name, client->query->real_name,
              client->query->plan);
