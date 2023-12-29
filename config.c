@@ -127,8 +127,9 @@ static bool list_node_use_passwd(const char *name, struct config_ent *node) {
   node->real_name = strdup(pw->pw_gecos);
 
   if (pw->pw_dir != NULL) {
-    char plan_path[strlen(pw->pw_dir) + 7];
-    sprintf(plan_path, "%s/.plan", pw->pw_dir);
+    size_t plan_path_len = strlen(pw->pw_dir) + 7;
+    char plan_path[plan_path_len];
+    snprintf(plan_path, plan_path_len, "%s/.plan", pw->pw_dir);
     if (!list_node_plan_file(node, plan_path, true)) node->plan = NULL;
   } else
     node->plan = NULL;

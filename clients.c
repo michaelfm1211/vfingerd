@@ -135,18 +135,20 @@ static void write_plan(struct client *client) {
     buf_len = strlen(client->query->name) + strlen(client->query->real_name) +
               sizeof(NO_PLAN) - 1 + sizeof(SERVER_SIG) - 1 + 30;
     buf = malloc(buf_len);
-    sprintf(buf,
-            "Username: %s\tReal Name: %s\r\n\r\n" NO_PLAN " " SERVER_SIG "\r\n",
-            client->query->name, client->query->real_name);
+    snprintf(buf, buf_len,
+             "Username: %s\nReal Name: %s\r\n\r\n" NO_PLAN " " SERVER_SIG
+             "\r\n",
+             client->query->name, client->query->real_name);
   } else {
     buf_len = strlen(client->query->name) + strlen(client->query->real_name) +
               sizeof(PLAN_HEADER) - 1 + strlen(client->query->plan) +
               sizeof(PLAN_FOOTER) - 1 + sizeof(SERVER_SIG) - 1 + 34;
     buf = malloc(buf_len);
-    sprintf(buf,
-            "Username: %s\tReal Name: %s\r\n\r\n" PLAN_HEADER
-            "\r\n%s\r\n" PLAN_FOOTER " " SERVER_SIG "\r\n",
-            client->query->name, client->query->real_name, client->query->plan);
+    snprintf(buf, buf_len,
+             "Username: %s\nReal Name: %s\r\n\r\n" PLAN_HEADER
+             "\r\n%s\r\n" PLAN_FOOTER " " SERVER_SIG "\r\n",
+             client->query->name, client->query->real_name,
+             client->query->plan);
   }
   write(client->fd, buf, buf_len - 1);
   client->state = DISCONNECT;
