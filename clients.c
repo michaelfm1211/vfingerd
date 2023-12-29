@@ -23,7 +23,7 @@ static void log_query(const char *ipaddr, const char *query) {
   struct tm curr_time;
   if (!localtime_r(&raw_time, &curr_time)) return;
   char timestr[27];
-  strftime(timestr, 27, "%d/%b/%Y:%H:%M:%S %z", &curr_time);
+  strftime(timestr, 27, "%D %H:%M:%S %z", &curr_time);
 
   printf("[%s] %s\t%s\n", timestr, ipaddr, query);
 }
